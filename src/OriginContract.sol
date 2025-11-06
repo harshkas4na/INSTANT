@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
-contract OriginContract is ReentrancyGuard {
+contract OriginContract {
     AggregatorV3Interface private ethUsdPriceFeed;
     AggregatorV3Interface private maticUsdPriceFeed;
     
@@ -13,7 +12,6 @@ contract OriginContract is ReentrancyGuard {
     uint256 public ltvRatio = 50; // 50%
     
     address public owner;
-    address public automationAdmin;
     address public riskAssessmentModule;
     address public interestRateOracle;
     
@@ -35,15 +33,7 @@ contract OriginContract is ReentrancyGuard {
     event CollateralReleased(address indexed user, uint256 amount);
     event LoanLiquidated(address indexed user, uint256 collateralAmount, uint256 loanAmount);
     
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not owner");
-        _;
-    }
     
-    modifier onlyAutomationAdmin() {
-        require(msg.sender == automationAdmin, "Not automation admin");
-        _;
-    }
     
     constructor(address _ethUsdPriceFeed, address _maticUsdPriceFeed) payable {
         owner = msg.sender;
@@ -53,16 +43,14 @@ contract OriginContract is ReentrancyGuard {
     
     receive() external payable {}
     
-    function setAutomationAdmin(address _newAdmin) external onlyOwner {
-        automationAdmin = _newAdmin;
-    }
     
-    function setRiskManagementAddresses(address _riskAssessmentModule, address _interestRateOracle) external onlyOwner {
+    
+    function setRiskManagementAddresses(address _riskAssessmentModule, address _interestRateOracle) external {
         riskAssessmentModule = _riskAssessmentModule;
         interestRateOracle = _interestRateOracle;
     }
     
-    function requestLoan(uint256 _loanAmount, uint256 _destinationChain, uint256 _durationInDays) external nonReentrant {
+    function requestLoan(uint256 _loanAmount, uint256 _destinationChain, uint256 _durationInDays) external  {
         require(_loanAmount > 0, "Loan amount must be greater than 0");
         require(loans[msg.sender].active == false, "Existing active loan");
         
@@ -82,7 +70,7 @@ contract OriginContract is ReentrancyGuard {
         emit LoanRequested(msg.sender,_loanAmount, interestRate, creditScore, _durationInDays);
     }
     
-    function depositCollateral() external payable nonReentrant {
+    function depositCollateral() external payable  {
         require(msg.value > 0, "Collateral amount must be greater than 0");
         require(loans[msg.sender].loanAmount > 0, "No loan requested");
         require(loans[msg.sender].active == false, "Loan already active");
@@ -103,7 +91,7 @@ contract OriginContract is ReentrancyGuard {
         return (requiredCollateralUsd * 1e18) / uint256(getEthPrice());
     }
     
-    function releaseCollateral(address /*sender*/, address _user) external onlyAutomationAdmin {
+    function releaseCollateral(address _user) external  {
         require(loans[_user].active, "No active loan found");
         
         uint256 collateralAmount = loans[_user].collateralAmount;
@@ -115,7 +103,7 @@ contract OriginContract is ReentrancyGuard {
         emit CollateralReleased(_user, collateralAmount);
     }
     
-    function liquidateLoan(address /*sender*/, address _user) external onlyAutomationAdmin {
+    function liquidateLoan(address _user) external  {
         Loan memory loan = loans[_user];
         require(loan.active, "No active loan found");
         
