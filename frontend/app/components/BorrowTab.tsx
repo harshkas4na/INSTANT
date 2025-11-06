@@ -100,11 +100,11 @@ export default function BorrowTab() {
           (OriginContract as BaseContract).methods.getMaticPrice().call(),
           (OriginContract as BaseContract).methods.getEthPrice().call()
         ]);
-        
         setPriceError(null);
         setMaticPrice(Number(maticPriceData) / 10**8); // Assuming 8 decimals for price feed
         setEthPrice(Number(ethPriceData) / 10**8); // Assuming 8 decimals for price feed
       } catch (error) {
+        console.log("Error fetching prices",error)
         setPriceError("Error fetching prices");
       }
     };
