@@ -12,29 +12,12 @@ import Web3 from 'web3';
 import TransactionStore from '../utils/transactionHistory';
 import { Contract, ContractAbi } from 'web3';
 
-interface LoanDetails {
-  active: boolean;
-  loanAmount: string;
-  collateralAmount: string;
-  interestRate: number;
-  destinationChain: number;
-  duration: number;
-  paidCollateral: string;
-}
+// Define a base contract interface
 type BaseContract = Contract<ContractAbi>;
 
 interface CollateralStatus {
   isFullyCollateralized: boolean;
-  remainingCollateral: string;
-}
-
-interface Transaction {
-  chain: string;
-  type: string;
-  amount: number;
-  token: string;
-  status: string;
-  txHash: string;
+  requiredCollateral: string;
 }
 
 export default function BorrowTab() {
@@ -51,7 +34,7 @@ export default function BorrowTab() {
   const [priceError, setPriceError] = useState<string | null>(null);
   const [collateralStatus, setCollateralStatus] = useState<CollateralStatus>({
     isFullyCollateralized: false,
-    remainingCollateral: '0'
+    requiredCollateral: '0'
   });
 
   // Constants
@@ -59,40 +42,51 @@ export default function BorrowTab() {
   const LIQUIDATION_THRESHOLD = 75;
   const LTV_RATIO = 50;
 
-  // Fetch loan details
+  // --- UPDATED FUNCTION ---
+  // Fetch loan details and check collateral status
   const fetchLoanDetails = async () => {
-    if (!OriginContract || !account) return;
+    if (!OriginContract || !account || !web3) return;
 
     try {
       const details = await (OriginContract as BaseContract).methods.getLoanDetails(account).call();
       
-      const parsedDetails: LoanDetails = {
-        active: details[6],
-        loanAmount: details[0],
-        collateralAmount: details[1],
-        destinationChain: Number(details[2]),
-        interestRate: Number(details[3]),
-        paidCollateral: details[4],
-        duration: Number(details[5])
+      // Correctly parse the details based on the contract's return order
+      const parsedDetails = {
+        collateralAmount: details[0], // uint256
+        loanAmount: details[1],       // uint256
+        destinationChain: Number(details[2]), // uint256
+        interestRate: Number(details[3]), // uint256
+        creditScore: Number(details[4]),      // uint256
+        duration: Number(details[5]),         // uint256
+        active: details[6]                    // bool
       };
 
       setLoanDetails(parsedDetails);
-      await updateCollateralStatus(parsedDetails);
+
+      // Check if a loan is active and needs collateral
+      if (parsedDetails.active && parsedDetails.collateralAmount === '0') {
+        const required = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(parsedDetails.loanAmount).call();
+        setCollateralStatus({
+          isFullyCollateralized: false,
+          requiredCollateral: String(required)
+        });
+        setLoanAmount(Number(web3.utils.fromWei(parsedDetails.loanAmount, 'ether')));
+      } else if (parsedDetails.active && parsedDetails.collateralAmount !== '0') {
+        setCollateralStatus({
+          isFullyCollateralized: true,
+          requiredCollateral: '0'
+        });
+        setLoanAmount(Number(web3.utils.fromWei(parsedDetails.loanAmount, 'ether')));
+      } else {
+        // No active loan
+        setCollateralStatus({
+          isFullyCollateralized: false,
+          requiredCollateral: '0'
+        });
+        setLoanAmount(0);
+      }
     } catch (error) {
       console.error('Error fetching loan details:', error);
-    }
-  };
-
-  // Update collateral status
-  const updateCollateralStatus = async (details: LoanDetails) => {
-    if (!OriginContract || !details.loanAmount) return;
-
-    try {
-      const requiredCollateral = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(details.loanAmount).call();
-      const paidCollateral = details.paidCollateral || '0';
-      setEstimatedCollateral(Number(requiredCollateral));
-    } catch (error) {
-      console.error('Error updating collateral status:', error);
     }
   };
 
@@ -108,8 +102,8 @@ export default function BorrowTab() {
         ]);
         
         setPriceError(null);
-        setMaticPrice(Number(maticPriceData) / 10**8);
-        setEthPrice(Number(ethPriceData) / 10**8);
+        setMaticPrice(Number(maticPriceData) / 10**8); // Assuming 8 decimals for price feed
+        setEthPrice(Number(ethPriceData) / 10**8); // Assuming 8 decimals for price feed
       } catch (error) {
         setPriceError("Error fetching prices");
       }
@@ -120,17 +114,21 @@ export default function BorrowTab() {
     return () => clearInterval(interval);
   }, [OriginContract]);
 
+  // Fetch loan details on account or contract change
   useEffect(() => {
     fetchLoanDetails();
-  }, [account, OriginContract]);
+  }, [account, OriginContract, web3]); // Added web3 dependency
 
+  // Update estimated collateral when loan amount changes
   useEffect(() => {
     const updateEstimatedCollateral = async () => {
-      if (!OriginContract || !loanAmount) return;
+      if (!OriginContract || !loanAmount || loanAmount === 0 || !web3) {
+        setEstimatedCollateral(0);
+        return;
+      }
       
       try {
-        const web3Instance = new Web3(window.ethereum);
-        const loanAmountWei = web3Instance.utils.toWei(loanAmount.toString(), 'ether');
+        const loanAmountWei = web3.utils.toWei(loanAmount.toString(), 'ether');
         const required = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(loanAmountWei).call();
         setEstimatedCollateral(Number(required));
       } catch (error) {
@@ -139,22 +137,19 @@ export default function BorrowTab() {
     };
 
     updateEstimatedCollateral();
-  }, [loanAmount, OriginContract]);
+  }, [loanAmount, OriginContract, web3]); // Added web3 dependency
 
   const handleDepositCollateral = async () => {
-    if (!OriginContract || !account || !loanDetails || !web3) return;
+    if (!OriginContract || !account || !web3 || collateralStatus.isFullyCollateralized) return;
   
     setIsProcessing(true);
     try {
-      const CurLoanDetails = await (OriginContract as BaseContract).methods.getLoanDetails(account).call();
-      const requiredCollateral:number = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(Number(CurLoanDetails[1])).call();
+      const requiredCollateral = collateralStatus.requiredCollateral;
       const tx = await (OriginContract as BaseContract).methods.depositCollateral().send({
         from: account,
-        value: String(requiredCollateral)
+        value: requiredCollateral // Send the exact required amount
       });
   
-      
-
       TransactionStore.saveTransaction({
         chain: 'sepolia',
         type: 'Deposit Collateral',
@@ -164,9 +159,8 @@ export default function BorrowTab() {
         txHash: tx.transactionHash
       });
   
-      setLoanAmount(Number(CurLoanDetails[1]));
-      setCollateralStatus({ isFullyCollateralized: true, remainingCollateral: '0' });
-      await fetchLoanDetails();
+      setCollateralStatus({ isFullyCollateralized: true, requiredCollateral: '0' });
+      await fetchLoanDetails(); // Refresh all details
     } catch (error) {
       console.error('Error depositing collateral:', error);
     } finally {
@@ -178,13 +172,8 @@ export default function BorrowTab() {
     setIsModalOpen(true);
   };
 
-  const canRequestLoan = !isProcessing && 
-                        loanAmount > 0 && 
-                        (!loanDetails?.active || collateralStatus.isFullyCollateralized);
-                        
-  const canDepositCollateral = !isProcessing && 
-                              !loanDetails?.active && 
-                              !collateralStatus.isFullyCollateralized;
+  const canRequestLoan = !isProcessing && loanAmount > 0 && !loanDetails?.active;
+  const canDepositCollateral = !isProcessing && loanDetails?.active && !collateralStatus.isFullyCollateralized;
 
   return (
     <div className="space-y-6">
@@ -197,9 +186,9 @@ export default function BorrowTab() {
               id="loanAmount"
               type="number"
               placeholder="0.00"
-              value={loanAmount}
+              value={loanAmount || ''}
               onChange={(e) => setLoanAmount(Number(e.target.value))}
-              disabled={loanDetails?.active && !collateralStatus.isFullyCollateralized}
+              disabled={loanDetails?.active} // Disable if a loan is active
             />
           </div>
           <div className="text-sm">
@@ -231,7 +220,7 @@ export default function BorrowTab() {
             <Select 
               value={loanDuration} 
               onValueChange={setLoanDuration}
-              disabled={loanDetails?.active && !collateralStatus.isFullyCollateralized}
+              disabled={loanDetails?.active} // Disable if a loan is active
             >
               <SelectTrigger id="duration">
                 <SelectValue placeholder="Select duration" />
@@ -243,11 +232,12 @@ export default function BorrowTab() {
               </SelectContent>
             </Select>
           </div>
-          {canDepositCollateral && (
-            <div className="space-y-2">
+          {/* Show required collateral if loan is requested but not deposited */}
+          {canDepositCollateral && web3 && (
+            <div className="space-y-2 text-yellow-500">
               <Label>Required Collateral (ETH)</Label>
               <p className="text-xl font-bold">
-                {web3?.utils.fromWei(estimatedCollateral.toString(), 'ether')} ETH
+                {web3.utils.fromWei(collateralStatus.requiredCollateral, 'ether')} ETH
               </p>
             </div>
           )}
@@ -307,22 +297,28 @@ export default function BorrowTab() {
       </div>
 
       <div className="space-y-4">
-        <Button 
-          className="w-full" 
-          size="lg" 
-          onClick={handleLoanRequest}
-          disabled={!canRequestLoan}
-        >
-          {isProcessing ? 'Processing...' : 'Request Loan'}
-        </Button>
-        {!collateralStatus.isFullyCollateralized && (
+        {/* Show Request Loan button only if no loan is active */}
+        {!loanDetails?.active && (
+          <Button 
+            className="w-full" 
+            size="lg" 
+            onClick={handleLoanRequest}
+            disabled={!canRequestLoan}
+          >
+            {isProcessing ? 'Processing...' : 'Request Loan'}
+          </Button>
+        )}
+        
+        {/* Show Deposit Collateral button only if loan is active but collateral is not paid */}
+        {canDepositCollateral && (
           <Button 
             className="w-full" 
             size="lg" 
             onClick={handleDepositCollateral}
-            disabled={!canDepositCollateral}
+            disabled={isProcessing}
+            variant="outline" // Make it visually distinct
           >
-            {isProcessing ? 'Processing...' : 'Deposit Additional Collateral'}
+            {isProcessing ? 'Processing...' : 'Deposit Collateral'}
           </Button>
         )}
       </div>

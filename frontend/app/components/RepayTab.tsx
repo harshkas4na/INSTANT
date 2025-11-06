@@ -165,8 +165,9 @@ const RepayTab = () => {
       console.log('Repayment transaction:', tx);
 
       
+      // --- UPDATED CHAIN ---
       TransactionStore.saveTransaction({
-        chain: 'Kopli',
+        chain: 'base', // Changed from 'Kopli'
         type: 'Repay',
         amount: Number(repayAmount),
         token: 'MATIC',
@@ -188,8 +189,9 @@ const RepayTab = () => {
       const txError = error as TransactionError;
       if (txError.transactionHash) {
         
+        // --- UPDATED CHAIN ---
         TransactionStore.saveTransaction({
-          chain: 'Kopli',
+          chain: 'base', // Changed from 'Kopli'
           type: 'Repay',
           amount: Number(repayAmount),
           token: 'MATIC',

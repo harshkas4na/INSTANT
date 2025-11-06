@@ -9,12 +9,13 @@ import { useWeb3 } from '../contexts/Web3Contexts';
 
 interface UserInfo {
   walletAddress: string;
-  totalCollateral: number;
-  totalLoans: number;
-  healthFactor: number;
+  totalCollateral: number; // This is mock data
+  totalLoans: number; // This is mock data
+  healthFactor: number; // This is mock data
 }
 
-type ChainType = 'all' | 'sepolia' | 'Kopli';
+// --- UPDATED CHAIN TYPE ---
+type ChainType = 'all' | 'sepolia' | 'base'; // Changed 'Kopli' to 'base'
 
 const AccountTab = () => {
   const [activeChain, setActiveChain] = useState<ChainType>('all');
@@ -22,10 +23,18 @@ const AccountTab = () => {
   const {account} = useWeb3();
   const [userInfo, setUserInfo] = useState<UserInfo>({
     walletAddress: account,
-    totalCollateral: 2.5,
-    totalLoans: 1500,
-    healthFactor: 1.8
+    totalCollateral: 2.5, // Mock data
+    totalLoans: 1500, // Mock data
+    healthFactor: 1.8 // Mock data
   });
+
+  // Update userInfo when account changes
+  useEffect(() => {
+    if (account) {
+      setUserInfo(prev => ({ ...prev, walletAddress: account }));
+      // In a real app, you would re-fetch collateral, loans, etc., here
+    }
+  }, [account]);
 
   useEffect(() => {
     const loadedTransactions = TransactionStore.getTransactions();
@@ -44,15 +53,10 @@ const AccountTab = () => {
 
   const getTransactionLink = (tx: Transaction): string => {
     if (tx.chain === 'sepolia') {
-      if (tx.type === 'Release Collateral') {
-        return `https://sepolia.etherscan.io/tx/${tx.txHash}`;
-      }
       return `https://sepolia.etherscan.io/tx/${tx.txHash}`;
     } else {
-      if (tx.type === 'Repay') {
-        return `https://kopli.reactscan.net/tx/${tx.txHash}`;
-      }
-      return `https://kopli.reactscan.net/tx/${tx.txHash}`;
+      // --- UPDATED LINK ---
+      return `https://sepolia.basescan.org/tx/${tx.txHash}`; // Changed from kopli.reactscan.net
     }
   };
 
@@ -78,7 +82,7 @@ const AccountTab = () => {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString(undefined, {
+    return new Date(dateString).toLocaleString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -105,14 +109,15 @@ const AccountTab = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
               <div className="text-sm text-slate-600 dark:text-slate-400">Wallet Address</div>
-              <div className="font-mono mt-1 break-all">{userInfo.walletAddress}</div>
+              <div className="font-mono mt-1 break-all">{userInfo.walletAddress || '...'}</div>
             </div>
             <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
               <div className="text-sm text-slate-600 dark:text-slate-400">Total Collateral (Sepolia)</div>
               <div className="font-semibold mt-1">{formatAmount(userInfo.totalCollateral, 'ETH')}</div>
             </div>
             <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Total Loans (Kopli)</div>
+               {/* --- UPDATED TEXT --- */}
+              <div className="text-sm text-slate-600 dark:text-slate-400">Total Loans (Base Sepolia)</div>
               <div className="font-semibold mt-1">{formatAmount(userInfo.totalLoans, 'MATIC')}</div>
             </div>
             <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -142,8 +147,9 @@ const AccountTab = () => {
               <TabsTrigger value="sepolia" onClick={() => setActiveChain('sepolia')}>
                 Sepolia (ETH)
               </TabsTrigger>
-              <TabsTrigger value="Kopli" onClick={() => setActiveChain('Kopli')}>
-                Kopli (MATIC)
+              {/* --- UPDATED TAB --- */}
+              <TabsTrigger value="base" onClick={() => setActiveChain('base')}>
+                Base (MATIC)
               </TabsTrigger>
             </TabsList>
 
@@ -170,7 +176,8 @@ const AccountTab = () => {
                   filteredTransactions.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="font-medium">
-                        {tx.chain === 'sepolia' ? 'Sepolia' : 'Kopli'}
+                        {/* --- UPDATED TEXT --- */}
+                        {tx.chain === 'sepolia' ? 'Sepolia' : 'Base'}
                       </TableCell>
                       <TableCell>{tx.type}</TableCell>
                       <TableCell>{formatAmount(tx.amount, tx.token)}</TableCell>
@@ -188,7 +195,8 @@ const AccountTab = () => {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                          {tx.chain === 'Kopli' ? 'View on Kopli' : 'View on Etherscan'}
+                          {/* --- UPDATED TEXT --- */}
+                          {tx.chain === 'base' ? 'View on BaseScan' : 'View on Etherscan'}
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       </TableCell>

@@ -4,14 +4,16 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import Web3 from 'web3';
 import { Contract, ContractAbi } from 'web3';
 
+// --- UPDATED INTERFACE ---
+// This now correctly matches the getLoanDetails() return struct
 interface LoanDetails {
-  active: boolean;
-  loanAmount: string;
-  collateralAmount: string;
-  interestRate: number;
-  destinationChain: number;
-  duration: number;
-  paidCollateral: string;
+  collateralAmount: string; // Index 0
+  loanAmount: string;       // Index 1
+  destinationChain: number; // Index 2
+  interestRate: number;     // Index 3
+  creditScore: number;      // Index 4
+  duration: number;         // Index 5
+  active: boolean;          // Index 6
 }
 
 // Define a base contract interface that extends the Contract type
