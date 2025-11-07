@@ -41,6 +41,14 @@ const RepayTab = () => {
   const { toast } = useToast()
   const { DestinationContract, account, web3 } = useWeb3()
 
+  const formatTokenAmount = (value: string) => {
+    const parsed = parseFloat(value);
+    if (Number.isNaN(parsed)) {
+      return '0.0000';
+    }
+    return parsed.toFixed(4);
+  };
+
   const loadLoanDetails = async () => {
     try {
       if (!account || !DestinationContract || !web3) {
@@ -59,8 +67,8 @@ const RepayTab = () => {
       }
   
       // Extract values using array indices
-      const amount = loanDetails['0'] || '0';
-      const repaidAmount = loanDetails['1'] || '0';
+      const amount: string = loanDetails['0'] || '0';
+      const repaidAmount: string = loanDetails['1'] || '0';
       const interestRate = loanDetails['2'] || '0';
       const dueDate = loanDetails['3'] || '0';
       const creditScore = loanDetails['4'] || '0';
@@ -79,17 +87,26 @@ const RepayTab = () => {
   
       if (active && funded) {
         // Get total due amount
-        const totalDue = await DestinationContract.methods.calculateTotalDue(account).call();
+        const totalDue = await DestinationContract.methods.calculateTotalDue(account).call() as string;
         console.log('Total due:', totalDue);
   
         // Convert Wei to Ether for display
-        const amountEther = web3.utils.fromWei(Number(amount).toString(), 'ether');
-        const repaidAmountEther = web3.utils.fromWei(Number(repaidAmount).toString(), 'ether');
-        const totalDueEther = web3.utils.fromWei(Number(totalDue).toString(), 'ether');
+        const amountEther = web3.utils.fromWei(amount, 'ether');
+        const repaidAmountEther = web3.utils.fromWei(repaidAmount, 'ether');
+        const totalDueEther = web3.utils.fromWei(totalDue, 'ether');
         
-        // Calculate progress
-        const progress = Number(amount) === 0 ? 0 : 
-          (Number(repaidAmount) * 100 / Number(amount));
+        // Calculate progress based on on-chain units to preserve precision
+        let progress = 0;
+        try {
+          const amountWei = BigInt(amount);
+          if (amountWei > BigInt(0)) {
+            const repaidWei = BigInt(repaidAmount);
+            const calculated = (repaidWei * BigInt(100)) / amountWei;
+            progress = Math.min(Number(calculated), 100);
+          }
+        } catch (error) {
+          console.error('Error calculating repayment progress:', error);
+        }
   
         // Convert timestamp to date
         const dueDateTimestamp = Number(dueDate) * 1000;
@@ -97,9 +114,9 @@ const RepayTab = () => {
   
         const loanData: LoanDetails = {
           id: 1,
-          amount: (Number(amountEther)*10**18).toFixed(4),
-          repaidAmount: Number(repaidAmountEther).toFixed(4),
-          totalDue: Number(totalDueEther).toFixed(4),
+          amount: String(Number(amountEther)*10**18),
+          repaidAmount: String(Number(repaidAmountEther)*10**18),
+          totalDue: String(Number(totalDueEther)*10**18),
           interest: Number(interestRate) / 100,
           dueDate: new Date(dueDateTimestamp).toLocaleDateString(),
           progress: Math.min(Math.round(progress), 100),

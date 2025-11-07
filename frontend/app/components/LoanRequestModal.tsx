@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,7 +18,7 @@ interface LoanRequestModalProps {
   onClose: () => void
   loanAmount: number
   loanDuration: number
-  estimatedCollateral: number | string
+  estimatedCollateral: string
   isProcessing: boolean
 }
 
@@ -33,6 +33,24 @@ export default function LoanRequestModal({
   const { account, OriginContract } = useWeb3();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formattedCollateral = useMemo(() => {
+    if (!estimatedCollateral) {
+      return '0.0000';
+    }
+
+    try {
+      const collateralEth = Web3.utils.fromWei(estimatedCollateral.toString(), 'ether');
+      const parsedCollateral = parseFloat(collateralEth);
+      if (Number.isNaN(parsedCollateral)) {
+        return '0.0000';
+      }
+      return parsedCollateral.toFixed(4);
+    } catch (error) {
+      console.error('Error formatting collateral:', error);
+      return '0.0000';
+    }
+  }, [estimatedCollateral]);
 
 
   const handleConfirm = async () => {
@@ -100,11 +118,7 @@ export default function LoanRequestModal({
           </div>
           <div className="flex justify-between">
             <span>Required Collateral:</span>
-            <span className="font-semibold">
-              {typeof estimatedCollateral === 'string' 
-                ? Web3.utils.fromWei(estimatedCollateral, 'ether')
-                : Web3.utils.fromWei(estimatedCollateral.toString(), 'ether')} ETH
-            </span>
+            <span className="font-semibold">{formattedCollateral} ETH</span>
           </div>
           <div className="flex justify-between">
             <span>Loan Duration:</span>

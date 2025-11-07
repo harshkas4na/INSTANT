@@ -27,7 +27,7 @@ export default function BorrowTab() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [loanAmount, setLoanAmount] = useState<number>(0);
   const [loanDuration, setLoanDuration] = useState<string>("30");
-  const [estimatedCollateral, setEstimatedCollateral] = useState<number>(0);
+  const [estimatedCollateral, setEstimatedCollateral] = useState<string>('0');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [maticPrice, setMaticPrice] = useState<number>(0);
   const [ethPrice, setEthPrice] = useState<number>(0);
@@ -124,14 +124,16 @@ export default function BorrowTab() {
   useEffect(() => {
     const updateEstimatedCollateral = async () => {
       if (!OriginContract || !loanAmount || loanAmount === 0 || !web3) {
-        setEstimatedCollateral(0);
+        setEstimatedCollateral('0');
         return;
       }
       
       try {
         const loanAmountWei = web3.utils.toWei(loanAmount.toString(), 'ether');
-        const required = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(loanAmountWei).call();
-        setEstimatedCollateral(Number(required));
+        const requiredCollateralWei = await (OriginContract as BaseContract)
+          .methods.calculateRequiredCollateral(loanAmountWei)
+          .call() as string;
+        setEstimatedCollateral(requiredCollateralWei ?? '0');
       } catch (error) {
         console.error('Error calculating estimated collateral:', error);
       }
