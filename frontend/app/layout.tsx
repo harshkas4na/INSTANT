@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ReactiveFlow Lender",
+  title: "Instant",
   description: "By Harsh kasana",
   icons: "./logo.svg"
 };

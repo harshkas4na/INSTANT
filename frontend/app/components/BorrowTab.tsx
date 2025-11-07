@@ -176,131 +176,159 @@ export default function BorrowTab() {
   const canDepositCollateral = !isProcessing && loanDetails?.active && !collateralStatus.isFullyCollateralized;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Loan Request</h2>
-          <div className="space-y-2">
-            <Label htmlFor="loanAmount">MATIC Amount</Label>
+        {/* Loan Request Card */}
+        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg space-y-4 card-hover">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+            Loan Request
+          </h2>
+          <div className="space-y-3">
+            <Label htmlFor="loanAmount" className="text-sm font-medium text-muted-foreground">
+              MATIC Amount
+            </Label>
             <Input
               id="loanAmount"
               type="number"
               placeholder="0.00"
               value={loanAmount || ''}
               onChange={(e) => setLoanAmount(Number(e.target.value))}
-              disabled={loanDetails?.active} // Disable if a loan is active
+              disabled={loanDetails?.active}
+              className="h-12 text-lg border-2 focus:border-primary transition-colors"
             />
           </div>
-          <div className="text-sm">
-            <p>
-              Current MATIC/USD: {
-                priceError ? 
-                <span className="text-red-500">{priceError}</span> : 
-                maticPrice ? 
-                `$${Number(maticPrice).toFixed(2)}` : 
-                "Loading..."
-              }
-            </p>
-            <p>Loan Value: ${(Number(loanAmount) * (Number(maticPrice) || 0)).toFixed(2)}</p>
+          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Current MATIC/USD:</span>
+              <span className="font-semibold">
+                {priceError ? 
+                  <span className="text-destructive">{priceError}</span> : 
+                  maticPrice ? 
+                  `$${Number(maticPrice).toFixed(2)}` : 
+                  <span className="text-muted-foreground">Loading...</span>
+                }
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Loan Value:</span>
+              <span className="font-bold text-lg text-primary">
+                ${(Number(loanAmount) * (Number(maticPrice) || 0)).toFixed(2)}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Loan Details</h2>
-          <div className="space-y-2">
-            <Label>Interest Rate</Label>
-            <p className="text-xl">
-              {loanDetails?.interestRate 
-                ? `${(loanDetails.interestRate / 100).toFixed(2)}%` 
-                : "Pending credit assessment"}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="duration">Loan Duration</Label>
-            <Select 
-              value={loanDuration} 
-              onValueChange={setLoanDuration}
-              disabled={loanDetails?.active} // Disable if a loan is active
-            >
-              <SelectTrigger id="duration">
-                <SelectValue placeholder="Select duration" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 days</SelectItem>
-                <SelectItem value="60">60 days</SelectItem>
-                <SelectItem value="90">90 days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Show required collateral if loan is requested but not deposited */}
-          {canDepositCollateral && web3 && (
-            <div className="space-y-2 text-yellow-500">
-              <Label>Required Collateral (ETH)</Label>
-              <p className="text-xl font-bold">
-                {web3.utils.fromWei(collateralStatus.requiredCollateral, 'ether')} ETH
+        {/* Loan Details Card */}
+        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg space-y-4 card-hover">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+            Loan Details
+          </h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Interest Rate</Label>
+              <p className="text-2xl font-bold text-primary">
+                {loanDetails?.interestRate 
+                  ? `${(loanDetails.interestRate / 100).toFixed(2)}%` 
+                  : <span className="text-muted-foreground">Pending credit assessment</span>}
               </p>
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="duration" className="text-sm font-medium text-muted-foreground">
+                Loan Duration
+              </Label>
+              <Select 
+                value={loanDuration} 
+                onValueChange={setLoanDuration}
+                disabled={loanDetails?.active}
+              >
+                <SelectTrigger id="duration" className="h-12 border-2">
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 days</SelectItem>
+                  <SelectItem value="60">60 days</SelectItem>
+                  <SelectItem value="90">90 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Show required collateral if loan is requested but not deposited */}
+            {canDepositCollateral && web3 && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-2">
+                <Label className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                  Required Collateral (ETH)
+                </Label>
+                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                  {web3.utils.fromWei(collateralStatus.requiredCollateral, 'ether')} ETH
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Risk Parameters</h2>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label>Collateralization Ratio</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Required collateral-to-loan ratio ({COLLATERALIZATION_RATIO}%)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+      {/* Risk Parameters Card */}
+      <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg space-y-6">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+          Risk Parameters
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Collateralization Ratio</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Required collateral-to-loan ratio ({COLLATERALIZATION_RATIO}%)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Slider defaultValue={[COLLATERALIZATION_RATIO]} max={200} step={1} disabled />
+            <p className="text-lg font-semibold text-center">{COLLATERALIZATION_RATIO}%</p>
           </div>
-          <Slider defaultValue={[COLLATERALIZATION_RATIO]} max={200} step={1} disabled />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label>Liquidation Threshold</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Position will be liquidated if collateral value falls below {LIQUIDATION_THRESHOLD}%</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Liquidation Threshold</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Position will be liquidated if collateral value falls below {LIQUIDATION_THRESHOLD}%</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-2xl font-bold text-center text-destructive">{LIQUIDATION_THRESHOLD}%</p>
           </div>
-          <p className="text-xl">{LIQUIDATION_THRESHOLD}%</p>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label>Loan-to-Value (LTV) Ratio</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Maximum borrowing power against collateral ({LTV_RATIO}%)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Loan-to-Value (LTV) Ratio</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Maximum borrowing power against collateral ({LTV_RATIO}%)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-2xl font-bold text-center text-primary">{LTV_RATIO}%</p>
           </div>
-          <p className="text-xl">{LTV_RATIO}%</p>
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="space-y-4">
-        {/* Show Request Loan button only if no loan is active */}
         {!loanDetails?.active && (
           <Button 
-            className="w-full" 
+            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300" 
             size="lg" 
             onClick={handleLoanRequest}
             disabled={!canRequestLoan}
@@ -309,14 +337,13 @@ export default function BorrowTab() {
           </Button>
         )}
         
-        {/* Show Deposit Collateral button only if loan is active but collateral is not paid */}
         {canDepositCollateral && (
           <Button 
-            className="w-full" 
+            className="w-full h-14 text-lg font-semibold border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl" 
             size="lg" 
             onClick={handleDepositCollateral}
             disabled={isProcessing}
-            variant="outline" // Make it visually distinct
+            variant="outline"
           >
             {isProcessing ? 'Processing...' : 'Deposit Collateral'}
           </Button>

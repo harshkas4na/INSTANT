@@ -178,46 +178,64 @@ const LiquidationsTab = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">At-Risk Loans (Overdue)</h2>
+    <div className="space-y-8">
+      <h2 className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400 bg-clip-text text-transparent">
+        At-Risk Loans (Overdue)
+      </h2>
       {atRiskLoans.length > 0 ? (
-        atRiskLoans.map((loan) => (
-          <div key={loan.id} className="bg-card text-card-foreground p-4 rounded-lg shadow space-y-2">
-            <div className="flex justify-between">
-              <span>Borrower Address</span>
-              <span className="font-mono text-sm">
-                {loan.borrower.slice(0, 6)}...{loan.borrower.slice(-4)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Loan Amount</span>
-              <span className="font-semibold">{Number(loan.amount).toFixed(4)} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Repaid Amount</span>
-              <span className="font-semibold">{Number(loan.repaidAmount).toFixed(4)} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Total Due</span>
-              <span className="font-semibold">{Number(loan.totalDue).toFixed(4)} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Status</span>
-              <span className="text-red-500 font-semibold">{loan.liquidationPrice}</span>
-            </div>
-            <Button 
-              className="w-full" 
-              onClick={() => handleLiquidate(loan.borrower)}
-              disabled={loading || processingLoan === loan.borrower}
-              variant="destructive"
+        <div className="space-y-4">
+          {atRiskLoans.map((loan) => (
+            <div 
+              key={loan.id} 
+              className="bg-card/80 backdrop-blur-sm border-2 border-destructive/30 rounded-xl p-6 shadow-lg space-y-4 card-hover relative overflow-hidden"
             >
-              {processingLoan === loan.borrower ? "Processing..." : "Liquidate"}
-            </Button>
-          </div>
-        ))
+              <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/10 rounded-full blur-3xl -z-0" />
+              <div className="relative z-10">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Borrower Address</span>
+                    <p className="font-mono text-sm font-semibold break-all">
+                      {loan.borrower.slice(0, 6)}...{loan.borrower.slice(-4)}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Loan Amount</span>
+                    <p className="text-lg font-bold">{Number(loan.amount).toFixed(4)} MATIC</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Repaid Amount</span>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {Number(loan.repaidAmount).toFixed(4)} MATIC
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Total Due</span>
+                    <p className="text-lg font-bold text-primary">
+                      {Number(loan.totalDue).toFixed(4)} MATIC
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg mb-4">
+                  <span className="text-sm font-medium text-muted-foreground">Status</span>
+                  <span className="text-lg font-bold text-destructive">{loan.liquidationPrice}</span>
+                </div>
+                <Button 
+                  className="w-full h-12 text-base font-semibold bg-destructive hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-300" 
+                  onClick={() => handleLiquidate(loan.borrower)}
+                  disabled={loading || processingLoan === loan.borrower}
+                  variant="destructive"
+                >
+                  {processingLoan === loan.borrower ? "Processing..." : "Liquidate Loan"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="text-center text-muted-foreground py-4">
-          {loading ? "Loading at-risk loans..." : "No at-risk loans found"}
+        <div className="bg-card/50 border border-border/50 rounded-xl p-12 text-center">
+          <p className="text-muted-foreground text-lg">
+            {loading ? "Loading at-risk loans..." : "No at-risk loans found"}
+          </p>
         </div>
       )}
     </div>

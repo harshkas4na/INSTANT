@@ -311,19 +311,24 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <div className="bg-background text-foreground">
-        <header className="border-b">
+      <div className="bg-background text-foreground relative overflow-hidden">
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 dark:from-indigo-950/20 dark:via-slate-950 dark:to-purple-950/20 pointer-events-none" />
+        
+        <header className="border-b border-border/40 backdrop-blur-sm bg-background/80 sticky top-0 z-50 relative">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Logo className="h-16 w-16" />
-              <h1 className="text-3xl font-bold">ReactiveFlow Lender</h1>
+            <div className="flex items-center space-x-4 group">
+              <div className="transition-transform duration-300 group-hover:scale-110">
+                <Logo className="h-16 w-16" />
+              </div>
+              <h1 className="text-3xl font-bold gradient-text">INSTANT</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Select 
                 value={selectedNetwork} 
                 onValueChange={(value) => switchNetwork(value)}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] border-2 transition-all hover:border-primary/50">
                   <SelectValue placeholder={getNetworkName()} />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,6 +341,7 @@ export default function App() {
                 onClick={connectWallet}
                 disabled={isLoading}
                 variant={error ? "destructive" : "default"}
+                className="transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 {isLoading ? (
                   "Connecting..."
@@ -347,51 +353,90 @@ export default function App() {
                   "Connect Wallet"
                 )}
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleDarkMode}
+                className="transition-all duration-300 hover:scale-110 hover:bg-accent rounded-full"
+              >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 relative z-10">
+          {/* Balance Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-card text-card-foreground p-4 rounded-lg shadow">
-              <h2 className="font-semibold mb-2">
-                {/* Updated Text */}
-                {chainId === 11155111 ? 'ETH (Sepolia)' : 'ETH (Base Sepolia)'} Balance
-              </h2>
-              <p className="text-2xl">{balances.eth} ETH</p>
+            <div className="bg-card text-card-foreground p-6 rounded-xl shadow-lg border border-border/50 card-hover relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <h2 className="font-semibold mb-2 text-muted-foreground text-sm uppercase tracking-wide">
+                  {/* Updated Text */}
+                  {chainId === 11155111 ? 'ETH (Sepolia)' : 'ETH (Base Sepolia)'} Balance
+                </h2>
+                <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  {balances.eth} ETH
+                </p>
+              </div>
             </div>
             {/* Updated to BASE_SEPOLIA */}
             {chainId === SUPPORTED_NETWORKS.BASE_SEPOLIA.chainId && (
-              <div className="bg-card text-card-foreground p-4 rounded-lg shadow">
-                <h2 className="font-semibold mb-2">MATIC Balance</h2>
-                <p className="text-2xl">{maticBalance} MATIC</p>
+              <div className="bg-card text-card-foreground p-6 rounded-xl shadow-lg border border-border/50 card-hover relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <h2 className="font-semibold mb-2 text-muted-foreground text-sm uppercase tracking-wide">MATIC Balance</h2>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                    {maticBalance} MATIC
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          <Tabs defaultValue="borrow" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="borrow">Borrow</TabsTrigger>
-              <TabsTrigger value="repay">Repay</TabsTrigger>
-              <TabsTrigger value="liquidations">Liquidations</TabsTrigger>
-              <TabsTrigger value="account">Account</TabsTrigger>
-            </TabsList>
-            <TabsContent value="borrow">
-              <BorrowTab />
-            </TabsContent>
-            <TabsContent value="repay">
-              <RepayTab />
-            </TabsContent>
-            <TabsContent value="liquidations">
-              <LiquidationsTab />
-            </TabsContent>
-            <TabsContent value="account">
-              <AccountTab />
-            </TabsContent>
-          </Tabs>
+          {/* Tabs Section */}
+          <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-xl p-6">
+            <Tabs defaultValue="borrow" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-lg">
+                <TabsTrigger 
+                  value="borrow" 
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  Borrow
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="repay"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  Repay
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="liquidations"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  Liquidations
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="account"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  Account
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="borrow" className="mt-6">
+                <BorrowTab />
+              </TabsContent>
+              <TabsContent value="repay" className="mt-6">
+                <RepayTab />
+              </TabsContent>
+              <TabsContent value="liquidations" className="mt-6">
+                <LiquidationsTab />
+              </TabsContent>
+              <TabsContent value="account" className="mt-6">
+                <AccountTab />
+              </TabsContent>
+            </Tabs>
+          </div>
         </main>
       </div>
     </div>

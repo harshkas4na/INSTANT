@@ -96,33 +96,33 @@ const AccountTab = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* User Info Card */}
-      <Card>
+      <Card className="bg-card/80 backdrop-blur-sm border-border/50 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <Wallet className="w-6 h-6 text-primary" />
             Account Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Wallet Address</div>
-              <div className="font-mono mt-1 break-all">{userInfo.walletAddress || '...'}</div>
+            <div className="p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 card-hover">
+              <div className="text-sm text-muted-foreground mb-2 font-medium">Wallet Address</div>
+              <div className="font-mono text-sm break-all text-foreground">{userInfo.walletAddress || '...'}</div>
             </div>
-            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Total Collateral (Sepolia)</div>
-              <div className="font-semibold mt-1">{formatAmount(userInfo.totalCollateral, 'ETH')}</div>
+            <div className="p-5 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 card-hover">
+              <div className="text-sm text-muted-foreground mb-2 font-medium">Total Collateral (Sepolia)</div>
+              <div className="font-bold text-lg text-blue-600 dark:text-blue-400">{formatAmount(userInfo.totalCollateral, 'ETH')}</div>
             </div>
-            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
+            <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 card-hover">
                {/* --- UPDATED TEXT --- */}
-              <div className="text-sm text-slate-600 dark:text-slate-400">Total Loans (Base Sepolia)</div>
-              <div className="font-semibold mt-1">{formatAmount(userInfo.totalLoans, 'MATIC')}</div>
+              <div className="text-sm text-muted-foreground mb-2 font-medium">Total Loans (Base Sepolia)</div>
+              <div className="font-bold text-lg text-green-600 dark:text-green-400">{formatAmount(userInfo.totalLoans, 'MATIC')}</div>
             </div>
-            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Health Factor</div>
-              <div className={`font-semibold mt-1 ${getHealthFactorColor(userInfo.healthFactor)}`}>
+            <div className="p-5 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 card-hover">
+              <div className="text-sm text-muted-foreground mb-2 font-medium">Health Factor</div>
+              <div className={`font-bold text-lg ${getHealthFactorColor(userInfo.healthFactor)}`}>
                 {userInfo.healthFactor.toFixed(2)}
               </div>
             </div>
@@ -131,80 +131,98 @@ const AccountTab = () => {
       </Card>
 
       {/* Transaction History Card */}
-      <Card>
+      <Card className="bg-card/80 backdrop-blur-sm border-border/50 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <Activity className="w-6 h-6 text-primary" />
             Transaction History
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="all" onClick={() => setActiveChain('all')}>
+            <TabsList className="mb-6 grid w-full grid-cols-3 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="all" 
+                onClick={() => setActiveChain('all')}
+                className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+              >
                 All Chains
               </TabsTrigger>
-              <TabsTrigger value="sepolia" onClick={() => setActiveChain('sepolia')}>
+              <TabsTrigger 
+                value="sepolia" 
+                onClick={() => setActiveChain('sepolia')}
+                className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+              >
                 Sepolia (ETH)
               </TabsTrigger>
               {/* --- UPDATED TAB --- */}
-              <TabsTrigger value="base" onClick={() => setActiveChain('base')}>
+              <TabsTrigger 
+                value="base" 
+                onClick={() => setActiveChain('base')}
+                className="data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200"
+              >
                 Base (MATIC)
               </TabsTrigger>
             </TabsList>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Chain</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Transaction Hash</TableHead>
-                  <TableHead>Links</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-slate-500">
-                      No transactions found
-                    </TableCell>
+            <div className="rounded-lg border border-border/50 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Chain</TableHead>
+                    <TableHead className="font-semibold">Type</TableHead>
+                    <TableHead className="font-semibold">Amount</TableHead>
+                    <TableHead className="font-semibold">Date</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">Transaction Hash</TableHead>
+                    <TableHead className="font-semibold">Links</TableHead>
                   </TableRow>
-                ) : (
-                  filteredTransactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="font-medium">
-                        {/* --- UPDATED TEXT --- */}
-                        {tx.chain === 'sepolia' ? 'Sepolia' : 'Base'}
-                      </TableCell>
-                      <TableCell>{tx.type}</TableCell>
-                      <TableCell>{formatAmount(tx.amount, tx.token)}</TableCell>
-                      <TableCell>{formatDate(tx.date)}</TableCell>
-                      <TableCell className={getStatusColor(tx.status)}>
-                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {formatTxHash(tx.txHash)}
-                      </TableCell>
-                      <TableCell>
-                        <a
-                          href={getTransactionLink(tx)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          {/* --- UPDATED TEXT --- */}
-                          {tx.chain === 'base' ? 'View on BaseScan' : 'View on Etherscan'}
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        No transactions found
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    filteredTransactions.map((tx) => (
+                      <TableRow key={tx.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-medium">
+                          {/* --- UPDATED TEXT --- */}
+                          {tx.chain === 'sepolia' ? 'Sepolia' : 'Base'}
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-sm font-medium">
+                            {tx.type}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-semibold">{formatAmount(tx.amount, tx.token)}</TableCell>
+                        <TableCell className="text-muted-foreground">{formatDate(tx.date)}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-md font-medium ${getStatusColor(tx.status)}`}>
+                            {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{formatTxHash(tx.txHash)}</TableCell>
+                        <TableCell>
+                          <a
+                            href={getTransactionLink(tx)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-medium"
+                          >
+                            {/* --- UPDATED TEXT --- */}
+                            {tx.chain === 'base' ? 'View on BaseScan' : 'View on Etherscan'}
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </Tabs>
         </CardContent>
       </Card>

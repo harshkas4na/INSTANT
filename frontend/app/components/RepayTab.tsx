@@ -224,72 +224,90 @@ const RepayTab = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Active Loans</h2>
-      {activeLoans.length > 0 ? (
-        activeLoans.map((loan) => (
-          <div key={loan.id} className="bg-card text-card-foreground p-4 rounded-lg shadow space-y-2">
-            <div className="flex justify-between">
-              <span>Loan Amount</span>
-              <span className="font-semibold">{loan.amount} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Repaid Amount</span>
-              <span className="font-semibold">{loan.repaidAmount} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Remaining Due</span>
-              <span className="font-semibold">{loan.totalDue} MATIC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Interest Rate</span>
-              <span>{loan.interest}% APR</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Due Date</span>
-              <span>{loan.dueDate}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Status</span>
-              <span className={`font-semibold ${getLoanStatusColor(loan.status)}`}>
-                {loan.status}
-              </span>
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>Repayment Progress</span>
-                <span>{loan.progress}%</span>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+          Active Loans
+        </h2>
+        {activeLoans.length > 0 ? (
+          <div className="space-y-4">
+            {activeLoans.map((loan) => (
+              <div 
+                key={loan.id} 
+                className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg space-y-4 card-hover"
+              >
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Loan Amount</span>
+                    <p className="text-lg font-bold text-foreground">{loan.amount} MATIC</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Repaid Amount</span>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">{loan.repaidAmount} MATIC</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Remaining Due</span>
+                    <p className="text-lg font-bold text-primary">{loan.totalDue} MATIC</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Interest Rate</span>
+                    <p className="text-lg font-semibold">{loan.interest}% APR</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Due Date</span>
+                    <p className="text-lg font-semibold">{loan.dueDate}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <p className={`text-lg font-bold ${getLoanStatusColor(loan.status)}`}>
+                      {loan.status}
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-border/50 space-y-2">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Repayment Progress</span>
+                    <span className="font-semibold">{loan.progress}%</span>
+                  </div>
+                  <Progress value={loan.progress} className="h-3" />
+                </div>
               </div>
-              <Progress value={loan.progress} />
-            </div>
+            ))}
           </div>
-        ))
-      ) : (
-        <div className="text-center text-muted-foreground py-4">
-          No active loans found
-        </div>
-      )}
+        ) : (
+          <div className="bg-card/50 border border-border/50 rounded-xl p-12 text-center">
+            <p className="text-muted-foreground text-lg">No active loans found</p>
+          </div>
+        )}
+      </div>
       
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Repay Loan</h2>
-        <div className="space-y-2">
-          <Label htmlFor="repayAmount">MATIC Amount</Label>
-          <Input
-            id="repayAmount"
-            type="number"
-            placeholder="0.00"
-            value={repayAmount}
-            onChange={(e) => setRepayAmount(e.target.value)}
+      <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg space-y-4">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+          Repay Loan
+        </h2>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="repayAmount" className="text-sm font-medium text-muted-foreground">
+              MATIC Amount
+            </Label>
+            <Input
+              id="repayAmount"
+              type="number"
+              placeholder="0.00"
+              value={repayAmount}
+              onChange={(e) => setRepayAmount(e.target.value)}
+              disabled={loading || activeLoans.length === 0}
+              className="h-12 text-lg border-2 focus:border-primary transition-colors"
+            />
+          </div>
+          <Button 
+            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300" 
+            onClick={handleRepay}
             disabled={loading || activeLoans.length === 0}
-          />
+          >
+            {loading ? "Processing..." : "Repay"}
+          </Button>
         </div>
-        <Button 
-          className="w-full" 
-          onClick={handleRepay}
-          disabled={loading || activeLoans.length === 0}
-        >
-          {loading ? "Processing..." : "Repay"}
-        </Button>
       </div>
     </div>
   );
