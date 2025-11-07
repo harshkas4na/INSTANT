@@ -49,7 +49,7 @@ export default function BorrowTab() {
 
     try {
       const details = await (OriginContract as BaseContract).methods.getLoanDetails(account).call();
-      
+      console.log("details",details)
       // Correctly parse the details based on the contract's return order
       const parsedDetails = {
         collateralAmount: details[0], // uint256
@@ -64,8 +64,9 @@ export default function BorrowTab() {
       setLoanDetails(parsedDetails);
 
       // Check if a loan is active and needs collateral
-      if (parsedDetails.active && parsedDetails.collateralAmount === '0') {
+      if (!parsedDetails.active && parsedDetails.collateralAmount !== '0') {
         const required = await (OriginContract as BaseContract).methods.calculateRequiredCollateral(parsedDetails.loanAmount).call();
+        console.log("required:",required)
         setCollateralStatus({
           isFullyCollateralized: false,
           requiredCollateral: String(required)
@@ -173,7 +174,7 @@ export default function BorrowTab() {
   };
 
   const canRequestLoan = !isProcessing && loanAmount > 0 && !loanDetails?.active;
-  const canDepositCollateral = !isProcessing && loanDetails?.active && !collateralStatus.isFullyCollateralized;
+  const canDepositCollateral = !isProcessing && !loanDetails?.active && !collateralStatus.isFullyCollateralized;
 
   return (
     <div className="space-y-8">

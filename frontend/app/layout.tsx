@@ -16,8 +16,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Instant",
-  description: "By Harsh kasana",
-  icons: "./logo.svg"
+  description: "Cross-Chain-Lending Protocol"
 };
 
 export default function RootLayout({
