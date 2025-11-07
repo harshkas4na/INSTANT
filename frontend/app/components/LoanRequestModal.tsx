@@ -53,7 +53,7 @@ export default function LoanRequestModal({
       // --- CHANGED HERE ---
       // Updated hardcoded KOPLI chain ID (5318008) to Base Sepolia (84532)
       const tx = await OriginContract.methods
-        .requestLoan(loanAmountWei, 84532, Number(loanDuration))
+        .requestLoan(Number(loanAmountWei)*10**18, 84532, Number(loanDuration))
         .send({ from: account });
     
       // Use the centralized transaction store

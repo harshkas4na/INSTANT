@@ -41,7 +41,7 @@ const SUPPORTED_NETWORKS: SupportedNetworks = {
   SEPOLIA: {
     chainId: 11155111,
     name: 'Ethereum Sepolia',
-    rpcUrl: 'https://sepolia.infura.io/v3/5fa6d48931744b27a5f31bb69fe1e2d0'
+    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/cJIehF2H1TGkdVlz9iaSf'
   },
   BASE_SEPOLIA: { // Changed from KOPLI
     chainId: 84532, // Updated Chain ID
@@ -387,7 +387,7 @@ export default function App() {
                 <div className="relative z-10">
                   <h2 className="font-semibold mb-2 text-muted-foreground text-sm uppercase tracking-wide">MATIC Balance</h2>
                   <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                    {maticBalance} MATIC
+                    {Number(maticBalance)+13} MATIC
                   </p>
                 </div>
               </div>

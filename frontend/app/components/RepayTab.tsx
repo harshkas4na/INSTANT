@@ -97,7 +97,7 @@ const RepayTab = () => {
   
         const loanData: LoanDetails = {
           id: 1,
-          amount: Number(amountEther).toFixed(4),
+          amount: (Number(amountEther)*10**18).toFixed(4),
           repaidAmount: Number(repaidAmountEther).toFixed(4),
           totalDue: Number(totalDueEther).toFixed(4),
           interest: Number(interestRate) / 100,
