@@ -159,7 +159,7 @@ const RepayTab = () => {
       }
 
       const tx = await DestinationContract.methods
-        .repayLoan(amountInWei)
+        .repayLoan(Number(amountInWei)/10**18)
         .send({ from: account });
       
       console.log('Repayment transaction:', tx);
